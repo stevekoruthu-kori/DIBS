@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Urbanist:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* NEON CYBER-STREETWEAR THRIFT AESTHETIC */
+
+:root {
+  --neon-black: #000000;
+  --graphite: #121212;
+  --neon-cyan: #00F0FF;
+  --neon-pink: #FF007A;
+  --electric-mint: #00FF85;
+  --white: #FFFFFF;
+  --soft-silver: #CFCFCF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Urbanist', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--neon-black);
+  overflow: hidden;
+  color: var(--white);
+  overscroll-behavior: none;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Premium Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--graphite);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--electric-mint), var(--neon-cyan));
+}
+
+/* Text Selection */
+::selection {
+  background: var(--neon-cyan);
+  color: var(--neon-black);
+}
+
+::-moz-selection {
+  background: var(--neon-cyan);
+  color: var(--neon-black);
+}
+
+/* Premium Backdrop Blur Support */
+@supports (backdrop-filter: blur(20px)) {
+  .backdrop-blur-premium {
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+}

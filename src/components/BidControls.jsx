@@ -1,49 +1,110 @@
-import { useAuction } from "../hooks/useAuction";
-import { placeBid } from "../services/auctionService";
-import { auth } from "../lib/firebase"; // Assuming auth is handled
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
-export default function BidControls() {
-  const { auctionState, loading } = useAuction();
+/**
+ * BidControls - The main interaction component
+ * ENGINEER 1'S FOCUS: TikTok-style UI with dopamine animations
+ */
 
-  if (loading) return <div>Loading...</div>;
-  if (!auctionState || auctionState.status !== "LIVE") return <div className="text-white">Waiting for Host...</div>;
+export const BidControls = ({ 
+  currentBid, 
+  currentItem, 
+  onBid, 
+  isUserHighestBidder,
+  bidIncrement = 50 
+}) => {
+  const [previousBid, setPreviousBid] = useState(currentBid);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  const currentPrice = auctionState.current_bid;
-  const nextBid = currentPrice + 50;
-
-  const handleBid = async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("Please Login!");
-    
-    // Optimistic UI update could happen here, but for safety we wait for DB
-    const result = await placeBid(nextBid, user);
-    if (!result.success) {
-        // Add a "Shake" animation or Toast here
-        console.log("Bid Failed:", result.reason);
+  // Trigger animation when bid changes
+  useEffect(() => {
+    if (currentBid !== previousBid && currentBid > 0) {
+      setShouldAnimate(true);
+      setPreviousBid(currentBid);
+      
+      // Reset animation after it completes
+      setTimeout(() => setShouldAnimate(false), 300);
     }
-  };
+  }, [currentBid, previousBid]);
 
   return (
-    <div className="fixed bottom-0 w-full p-4 bg-gradient-to-t from-black to-transparent z-50">
+    <div className="absolute bottom-0 left-0 right-0 z-10 p-6">
+      {/* Bottom gradient for readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent -z-10" />
       
-      {/* Price Display */}
-      <div className="text-center mb-4">
-        <p className="text-gray-300 text-sm">Current Bid</p>
-        <h1 className="text-4xl font-bold text-yellow-400 transition-all duration-100">
-            ₹{currentPrice}
-        </h1>
-        <p className="text-xs text-gray-400">
-            Highest: {auctionState.highest_bidder?.name || "No Bids"}
-        </p>
+      {/* Bid Card */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-4">
+        <div className="flex items-center gap-4">
+          {/* Item Thumbnail */}
+          {currentItem?.image && (
+            <img 
+              src={currentItem.image} 
+              alt={currentItem.name}
+              className="w-20 h-20 object-cover rounded-lg"
+            />
+          )}
+          
+          {/* Item Info */}
+          <div className="flex-1">
+            <h3 className="text-white font-semibold text-lg">
+              {currentItem?.name || 'Current Item'}
+            </h3>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-gray-400 text-sm">Current Bid</span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentBid}
+                  initial={{ scale: 1 }}
+                  animate={{ 
+                    scale: shouldAnimate ? [1, 1.2, 1] : 1,
+                    color: shouldAnimate ? ['#fff', '#ffd700', '#fff'] : '#fff'
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="text-2xl font-bold text-white"
+                >
+                  ₹{currentBid}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* The Big Button */}
-      <button 
-        onClick={handleBid}
-        className="w-full bg-indigo-600 text-white font-bold py-4 rounded-full text-xl active:scale-95 transition-transform shadow-lg shadow-indigo-500/50"
+      <motion.button
+        onClick={onBid}
+        disabled={isUserHighestBidder}
+        whileTap={{ scale: 0.95 }}
+        className={`
+          w-full py-6 rounded-2xl font-bold text-xl
+          transition-all duration-200
+          ${isUserHighestBidder 
+            ? 'bg-green-500 text-white cursor-not-allowed' 
+            : 'bg-dibs-accent text-white hover:bg-dibs-accent/90 active:scale-95'
+          }
+        `}
+        style={{
+          boxShadow: isUserHighestBidder 
+            ? '0 0 30px rgba(34, 197, 94, 0.5)' 
+            : '0 0 30px rgba(255, 51, 102, 0.6)'
+        }}
       >
-        BID ₹{nextBid}
-      </button>
+        {isUserHighestBidder ? (
+          <span>✓ You're Winning!</span>
+        ) : (
+          <span>BID ₹{currentBid + bidIncrement}</span>
+        )}
+      </motion.button>
+
+      {/* Tap hint (shows only on first render) */}
+      <motion.p
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ delay: 3, duration: 1 }}
+        className="text-center text-white/60 text-sm mt-3"
+      >
+        Tap to place your bid
+      </motion.p>
     </div>
   );
-}
+};

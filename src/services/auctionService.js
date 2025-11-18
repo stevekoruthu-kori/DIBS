@@ -1,54 +1,120 @@
-import { ref, runTransaction, set, update } from "firebase/database";
-import { db } from "../lib/firebase"; // Import from your lib
+import { ref, runTransaction, set, update, get } from "firebase/database";
+import { db, placeBid, subscribeToAuction } from "../lib/firebase";
 
-// 1. The Atomic Bid Function (From previous step)
-export const placeBid = async (bidAmount, user) => {
-  const liveAuctionRef = ref(db, 'live_auction');
+/**
+ * ENGINEER 2'S HOME - THE TRANSACTION LOGIC LAYER
+ * This file handles all business logic for bidding
+ */
 
+/**
+ * Validate and submit a bid
+ * @param {string} auctionId 
+ * @param {string} userId 
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export const submitBid = async (auctionId, userId) => {
   try {
-    const result = await runTransaction(liveAuctionRef, (currentData) => {
-      if (!currentData) return currentData;
-      if (currentData.status !== "LIVE") throw new Error("Auction Closed");
-      if (bidAmount <= currentData.current_bid) return; // Abort if too low
-
-      // OPTIONAL: Anti-Sniping (Extend timer if <10s left)
-      let newEndTime = currentData.timer_end_at;
-      const timeLeft = currentData.timer_end_at - Date.now();
-      if (timeLeft < 10000) { 
-          newEndTime = Date.now() + 15000; 
-      }
-
-      return {
-        ...currentData,
-        current_bid: bidAmount,
-        timer_end_at: newEndTime,
-        highest_bidder: {
-          uid: user.uid,
-          name: user.displayName || "Anonymous"
-        }
-      };
-    });
-
-    return result.committed ? { success: true } : { success: false, reason: "OUTBID" };
-  } catch (e) {
-    console.error(e);
-    return { success: false, reason: e.message };
+    // 1. Get current auction state
+    const auctionRef = ref(db, `auctions/${auctionId}`);
+    const snapshot = await get(auctionRef);
+    const auction = snapshot.val();
+    
+    if (!auction) {
+      return { success: false, message: "Auction not found" };
+    }
+    
+    // 2. Validate auction is active
+    if (auction.status !== "active") {
+      return { success: false, message: "Auction is not active" };
+    }
+    
+    // 3. Check user isn't already the highest bidder
+    if (auction.currentBidder === userId) {
+      return { success: false, message: "You're already the highest bidder!" };
+    }
+    
+    // 4. Calculate new bid (current bid + increment)
+    const currentBid = auction.currentBid || auction.startingPrice || 0;
+    const bidIncrement = auction.bidIncrement || 50;
+    const newBid = currentBid + bidIncrement;
+    
+    // 5. Submit the bid
+    await placeBid(auctionId, newBid, userId);
+    
+    return { 
+      success: true, 
+      message: "Bid placed successfully!",
+      newBid 
+    };
+    
+  } catch (error) {
+    console.error("Bid submission error:", error);
+    return { 
+      success: false, 
+      message: "Failed to place bid. Please try again." 
+    };
   }
 };
 
-// 2. Admin Functions
-export const startAuction = async (itemData) => {
-  const liveRef = ref(db, 'live_auction');
-  await set(liveRef, {
-    status: "LIVE",
-    current_item: itemData,
-    current_bid: itemData.start_price,
-    timer_end_at: Date.now() + 60000, // 60 Seconds
-    highest_bidder: null
-  });
+/**
+ * Get auction details (one-time fetch)
+ * @param {string} auctionId 
+ */
+export const getAuctionDetails = async (auctionId) => {
+  const auctionRef = ref(db, `auctions/${auctionId}`);
+  const snapshot = await get(auctionRef);
+  return snapshot.val();
 };
 
-export const stopAuction = async () => {
-   const liveRef = ref(db, 'live_auction');
-   await update(liveRef, { status: "SOLD" });
+/**
+ * Calculate time remaining in auction
+ * @param {number} endTime - Unix timestamp
+ * @returns {string} Formatted time remaining
+ */
+export const getTimeRemaining = (endTime) => {
+  const now = Date.now();
+  const diff = endTime - now;
+  
+  if (diff <= 0) return "ENDED";
+  
+  const minutes = Math.floor(diff / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// ========== ADMIN FUNCTIONS (Engineer 2 territory) ==========
+
+/**
+ * Start a new auction
+ * @param {Object} itemData - Item details
+ */
+export const startAuction = async (itemData) => {
+  const auctionId = `auction_${Date.now()}`;
+  const auctionRef = ref(db, `auctions/${auctionId}`);
+  
+  await set(auctionRef, {
+    status: "active",
+    currentItem: itemData,
+    currentBid: itemData.startPrice || 0,
+    bidIncrement: itemData.bidIncrement || 50,
+    startTime: Date.now(),
+    endTime: Date.now() + (itemData.duration || 60000), // 60 seconds default
+    currentBidder: null,
+    viewers: 0
+  });
+  
+  return auctionId;
+};
+
+/**
+ * Stop the current auction
+ * @param {string} auctionId 
+ */
+export const stopAuction = async (auctionId) => {
+  const auctionRef = ref(db, `auctions/${auctionId}`);
+  await update(auctionRef, { 
+    status: "ended",
+    endTime: Date.now()
+  });
 };
