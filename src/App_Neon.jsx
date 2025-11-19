@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './screens/LoginPage';
 import ThriftBrowse from './screens/ThriftBrowse';
 import WelcomePage from './screens/WelcomePage';
+import LiveStreamPlayer from './components/LiveStreamPlayer';
 
 /**
  * DIBS - PROGRESSIVE WEB APP
@@ -98,19 +99,9 @@ const LiveAuctionMobile = ({ onNavigate }) => {
       <div className="relative w-full max-w-[480px] h-full bg-black shadow-2xl overflow-hidden">
       {/* 1. Full-screen Video Background */}
       <div className="absolute inset-0 bg-gray-900">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.3 }}
-            transition={{ duration: 1 }}
-            className="text-center"
-          >
-            <div className="text-8xl mb-4 grayscale opacity-50">📹</div>
-            <p className="text-gray-600 text-lg font-bold tracking-wider">LIVE STREAM FEED</p>
-          </motion.div>
-        </div>
+        <LiveStreamPlayer />
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 pointer-events-none" />
       </div>
 
       {/* 2. Top Header */}
