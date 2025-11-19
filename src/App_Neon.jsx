@@ -31,15 +31,17 @@ const LiveAuctionMobile = ({ onNavigate }) => {
   const [priceKey, setPriceKey] = useState(0);
   const [bidCount, setBidCount] = useState(47);
   const [timeLeft, setTimeLeft] = useState(45);
-
-  const recentBids = [
-    { id: 1, name: 'Rohan K.', amount: 900, time: '2s ago', avatar: '🔥' },
-    { id: 2, name: 'Priya M.', amount: 850, time: '5s ago', avatar: '⚡' },
-    { id: 3, name: 'Arjun S.', amount: 800, time: '8s ago', avatar: '💎' },
-  ];
+  const [customBidAmount, setCustomBidAmount] = useState(950);
+  const [chatMessage, setChatMessage] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 1, user: 'vintage_king', text: 'Is this true to size?', color: 'text-gray-400' },
+    { id: 2, user: 'sneaker_head', text: 'Bid placed! 🔥', color: 'text-gray-400' },
+    { id: 3, user: 'thrift_queen', text: 'Love the color on this one', color: 'text-gray-400' },
+  ]);
 
   useEffect(() => {
     setPriceKey(prev => prev + 1);
+    setCustomBidAmount(currentPrice + 50);
   }, [currentPrice]);
 
   // Timer countdown
@@ -51,18 +53,51 @@ const LiveAuctionMobile = ({ onNavigate }) => {
   }, []);
 
   const handleBid = () => {
-    setCurrentPrice(currentPrice + 50);
+    setCurrentPrice(customBidAmount);
     setBidCount(bidCount + 1);
     setIsWinning(true);
     setShowConfetti(true);
     setTimeLeft(45); // Reset timer
+    
+    // Add bid message
+    setMessages(prev => [...prev, { 
+      id: Date.now(), 
+      user: 'You', 
+      text: `Bid placed: ₹${customBidAmount}`, 
+      color: 'text-white' 
+    }]);
+
     setTimeout(() => setShowConfetti(false), 4000);
   };
 
+  const decreaseBid = () => {
+    if (customBidAmount > currentPrice + 50) {
+      setCustomBidAmount(prev => prev - 100);
+    }
+  };
+
+  const increaseBid = () => {
+    setCustomBidAmount(prev => prev + 100);
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!chatMessage.trim()) return;
+    
+    setMessages(prev => [...prev, { 
+      id: Date.now(), 
+      user: 'You', 
+      text: chatMessage, 
+      color: 'text-gray-400' 
+    }]);
+    setChatMessage('');
+  };
+
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
-      {/* Premium Video Background */}
-      <div className="absolute inset-0 bg-black">
+    <div className="w-full h-screen bg-black flex justify-center overflow-hidden font-urbanist">
+      <div className="relative w-full max-w-[480px] h-full bg-black shadow-2xl overflow-hidden">
+      {/* 1. Full-screen Video Background */}
+      <div className="absolute inset-0 bg-gray-900">
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -71,252 +106,124 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             className="text-center"
           >
             <div className="text-8xl mb-4 grayscale opacity-50">📹</div>
-            <p className="text-gray-600 text-lg font-urbanist font-bold tracking-wider">LIVE STREAM</p>
+            <p className="text-gray-600 text-lg font-bold tracking-wider">LIVE STREAM FEED</p>
           </motion.div>
         </div>
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
       </div>
 
-      {/* Enhanced Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-5">
-        <div className="flex items-center justify-between">
-          {/* Left: LIVE Badge + Viewers */}
-          <div className="flex items-center gap-2">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-white rounded-full blur-lg opacity-20 animate-pulse" />
-              <div className="relative flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-2xl">
-                <div className="w-2 h-2 bg-red-600 rounded-full animate-ping" />
-                <div className="w-2 h-2 bg-red-600 rounded-full absolute left-4 animate-pulse" />
-                <span className="text-black font-black text-sm uppercase tracking-widest font-urbanist">LIVE</span>
-              </div>
-            </motion.div>
-            
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="backdrop-blur-2xl bg-white/10 px-4 py-2 rounded-full border border-white/20"
-            >
-              <span className="text-white font-bold text-sm font-inter">👁️ 1.2K</span>
-            </motion.div>
+      {/* 2. Top Header */}
+      <div className="absolute top-0 left-0 right-0 z-30 p-4 flex items-start justify-between">
+        {/* Streamer Profile */}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full bg-gray-700 border-2 border-white overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="Streamer" className="w-full h-full object-cover grayscale" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 bg-white text-black text-[8px] font-bold px-1 rounded">LIVE</div>
           </div>
-
-          {/* Right: Timer */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="backdrop-blur-2xl bg-white/10 px-5 py-2 rounded-full border border-white/20"
-          >
+          <div>
             <div className="flex items-center gap-2">
-              <span className="text-white font-black text-lg font-urbanist">{timeLeft}s</span>
-              <span className="text-xs text-gray-300 font-inter">left</span>
+              <span className="text-white font-bold text-sm">vintage_vault</span>
+              <button className="bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full">
+                Follow
+              </button>
             </div>
-          </motion.div>
+            <div className="flex items-center gap-1 text-white/80 text-xs">
+              <span>00:45</span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/></svg>
+                1.2K
+              </span>
+            </div>
+          </div>
+          <button className="ml-1 text-white">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </button>
+        </div>
+
+        {/* Right: User Profile */}
+        <div className="flex items-center gap-2 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+          <span className="text-white font-bold text-xs">vbdxd</span>
         </div>
       </div>
 
-      {/* Premium Bottom Section */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-        {/* Enhanced Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent" 
-             style={{ height: '70%' }} />
-        
-        {/* Content */}
-        <div className="relative pointer-events-auto px-5 pb-6 pt-32 space-y-4">
-          
-          {/* Premium Item Card with Glassmorphism */}
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100 }}
-            className="relative overflow-hidden rounded-3xl"
-          >
-            {/* Glowing border effect - Removed for Black/Off-White Theme */}
-            
-            <div className="relative backdrop-blur-3xl bg-white/5 border border-white/10 rounded-3xl p-6">
-              <div className="flex gap-4 items-start">
-                {/* Premium Image with glow */}
-                <motion.div 
-                  whileHover={{ scale: 1.05 }}
-                  className="relative"
-                >
-                  <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-40" />
-                  <div className="relative w-32 h-32 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop" 
-                      alt="Item" 
-                      className="w-full h-full object-cover grayscale"
-                    />
-                    {/* Condition Badge */}
-                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-black text-xs font-black px-2 py-1 rounded-full">
-                      9/10
-                    </div>
-                  </div>
-                </motion.div>
-                
-                <div className="flex-1 pt-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-white font-black text-xl mb-1 font-urbanist leading-tight">
-                        Vintage Nike Tee
-                      </h3>
-                      <p className="text-gray-400 text-sm font-inter">Size L • 90s Era • Mint</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white text-xs font-bold">{bidCount} bids</p>
-                    </div>
-                  </div>
-                  
-                  {/* Price Display with Premium Animation */}
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <motion.div
-                      key={priceKey}
-                      initial={{ scale: 0.8, y: 10, opacity: 0 }}
-                      animate={{ scale: [0.8, 1.15, 1], y: 0, opacity: 1 }}
-                      transition={{ 
-                        duration: 0.6, 
-                        ease: [0.34, 1.56, 0.64, 1] // Bouncy ease
-                      }}
-                      className="relative"
-                    >
-                      <div className="absolute inset-0 bg-white/20 rounded-lg blur-2xl opacity-50" />
-                      <div className="relative text-6xl font-black font-urbanist text-white">
-                        ₹{currentPrice}
-                      </div>
-                    </motion.div>
-                    {isWinning && (
-                      <motion.span
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        className="text-white text-2xl"
-                      >
-                        ✓
-                      </motion.span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+      {/* 3. Left-side Chat Overlay */}
+      <div className="absolute bottom-32 left-4 w-64 h-48 overflow-hidden mask-image-linear-gradient-to-t">
+        <div className="flex flex-col justify-end h-full space-y-2">
+          {messages.slice(-5).map((msg) => (
+            <motion.div 
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm drop-shadow-md"
+            >
+              <span className={`${msg.color} font-bold mr-2`}>{msg.user}</span>
+              <span className="text-white font-medium">{msg.text}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
 
-          {/* Enhanced Recent Bids Feed */}
-          <div className="space-y-2">
-            {recentBids.map((bid, i) => (
-              <motion.div
-                key={bid.id}
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ 
-                  delay: i * 0.1,
-                  type: "spring",
-                  stiffness: 200
-                }}
-                className="group relative overflow-hidden backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/10 hover:border-white/30 transition-all"
-              >
-                <div className="relative flex items-center gap-3 px-4 py-3">
-                  <div className="text-2xl">{bid.avatar}</div>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-white font-bold text-sm font-urbanist">{bid.name}</span>
-                      <span className="text-gray-400 text-xs font-inter">{bid.time}</span>
-                    </div>
-                    <span className="text-gray-500 text-xs font-inter">placed a bid</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-white font-black text-lg font-urbanist">₹{bid.amount}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+      {/* 4. Chat Input */}
+      <div className="absolute bottom-[90px] left-4 right-20 z-30">
+        <form onSubmit={handleSendMessage} className="relative">
+          <input 
+            type="text" 
+            value={chatMessage}
+            onChange={(e) => setChatMessage(e.target.value)}
+            placeholder="Say something..." 
+            className="w-full bg-black/40 backdrop-blur-md text-white text-sm rounded-full px-4 py-2.5 border border-white/10 focus:outline-none focus:border-white/30 placeholder-white/50"
+          />
+          <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-white font-bold text-xs">
+            SEND
+          </button>
+        </form>
+      </div>
+
+      {/* 5. Auction Bar (Bottom) */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 p-3 pb-6 z-40">
+        <div className="flex items-center gap-3">
+          {/* Item Thumbnail */}
+          <div className="w-12 h-12 rounded-lg bg-gray-800 overflow-hidden border border-white/20 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop" alt="Item" className="w-full h-full object-cover grayscale" />
           </div>
 
-          {/* Premium BID Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleBid}
-            className="relative w-full py-7 rounded-3xl font-black text-2xl uppercase tracking-wider overflow-hidden group"
-          >
-            {/* Animated background gradient */}
-            <motion.div
-              animate={{
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className={`absolute inset-0 ${
-                isWinning
-                  ? 'bg-white'
-                  : 'bg-white'
-              }`}
-              style={{ backgroundSize: '200% 200%' }}
-            />
-            
-            {/* Glow effect */}
-            <div className={`absolute inset-0 blur-2xl opacity-50 ${
-              isWinning ? 'bg-white' : 'bg-white'
-            }`} />
-            
-            {/* Button content */}
-            <div className="relative flex items-center justify-center gap-3 font-urbanist text-black">
-              {isWinning ? (
-                <>
-                  <motion.span
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 0.5 }}
-                    className="text-3xl"
-                  >
-                    ✓
-                  </motion.span>
-                  <span className="text-black">YOU'RE WINNING!</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-black">BID</span>
-                  <motion.span
-                    key={currentPrice}
-                    initial={{ scale: 1.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-black font-black"
-                  >
-                    ₹{currentPrice + 50}
-                  </motion.span>
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="text-2xl"
-                  >
-                    →
-                  </motion.span>
-                </>
-              )}
+          {/* Item Info */}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-bold text-sm truncate">Vintage Nike Tee</h3>
+            <p className="text-gray-400 text-xs truncate">Size L • 90s Era</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-white font-black text-lg">₹{currentPrice}</span>
+              <span className="text-gray-500 text-xs font-mono">{timeLeft}s</span>
             </div>
-            
-            {/* Ripple effect on tap */}
-            <motion.div
-              initial={{ scale: 0, opacity: 0.5 }}
-              whileTap={{ scale: 2, opacity: 0 }}
-              className="absolute inset-0 bg-black/10 rounded-3xl"
-            />
-          </motion.button>
+          </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex gap-2 pt-2">
+          {/* Bid Controls */}
+          <div className="flex items-center gap-2">
             <button 
-              onClick={() => onNavigate('desktop')}
-              className="flex-1 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-lg"
+              onClick={decreaseBid}
+              className="w-10 h-10 rounded-full bg-gray-800 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-transform"
             >
-              DESKTOP VIEW
+              <span className="text-xl font-bold">-</span>
             </button>
-            <button 
-              onClick={() => onNavigate('admin')}
-              className="flex-1 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-lg"
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBid}
+              className="bg-white text-black font-black px-6 py-3 rounded-xl flex flex-col items-center min-w-[100px] shadow-[0_0_15px_rgba(255,255,255,0.4)]"
             >
-              ADMIN PANEL
+              <span className="text-xs font-bold uppercase">BID</span>
+              <span className="text-lg leading-none">₹{customBidAmount}</span>
+            </motion.button>
+
+            <button 
+              onClick={increaseBid}
+              className="w-10 h-10 rounded-full bg-gray-800 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <span className="text-xl font-bold">+</span>
             </button>
           </div>
         </div>
@@ -329,96 +236,17 @@ const LiveAuctionMobile = ({ onNavigate }) => {
           height={window.innerHeight}
           numberOfPieces={200}
           gravity={0.3}
-          colors={['#FFFFFF', '#CCCCCC', '#999999', '#000000']} // Monochrome colors!
+          colors={['#FFFFFF', '#CCCCCC', '#888888']} 
           recycle={false}
           className="z-50"
         />
       )}
-    </div>
-  );
-};
-
-// ============================================
-// SCREEN 2: DESKTOP VIEW
-// ============================================
-
-const DesktopView = ({ onNavigate }) => {
-  return (
-    <div className="w-full h-screen bg-neon-black flex">
-      {/* Left: Video (60%) */}
-      <div className="w-3/5 relative bg-gradient-to-br from-gray-900 via-graphite to-black">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-9xl mb-6 opacity-20">📹</div>
-            <p className="text-soft-silver text-2xl font-urbanist font-bold">LIVE STREAM</p>
-          </div>
-        </div>
-        
-        {/* LIVE Badge */}
-        <div className="absolute top-6 left-6 flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-neon-pink px-5 py-2.5 rounded-full shadow-neon-pink">
-            <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-            <span className="text-white font-black text-base uppercase tracking-widest font-urbanist">LIVE</span>
-          </div>
-          <div className="bg-graphite/80 backdrop-blur-xl px-5 py-2.5 rounded-full border-2 border-neon-cyan shadow-neon-cyan">
-            <span className="text-neon-cyan font-bold text-base font-inter">1.2K watching</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Right: Auction Panel (40%) */}
-      <div className="w-2/5 bg-graphite p-8 overflow-y-auto">
-        <div className="space-y-6">
-          {/* Header */}
-          <div>
-            <h2 className="text-neon-cyan text-3xl font-black font-urbanist mb-2" style={{ textShadow: '0 0 20px #00F0FF' }}>
-              LIVE AUCTION
-            </h2>
-            <p className="text-soft-silver font-inter">Desktop Experience</p>
-          </div>
-
-          {/* Item Card */}
-          <div className="bg-neon-black/50 border-2 border-neon-pink/30 rounded-2xl p-6">
-            <img 
-              src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop"
-              alt="Item"
-              className="w-full h-48 object-cover rounded-xl mb-4 border-2 border-neon-cyan shadow-neon-cyan"
-            />
-            <h3 className="text-white font-black text-2xl font-urbanist mb-2">Vintage Nike Tee – Size L</h3>
-            <p className="text-soft-silver mb-4 font-inter">Excellent Condition • 90s Era</p>
-            <div className="text-5xl font-black text-neon-cyan mb-6 font-urbanist" style={{ textShadow: '0 0 30px #00F0FF' }}>
-              ₹900
-            </div>
-            
-            <button className="w-full py-4 bg-neon-cyan text-neon-black font-black text-xl rounded-xl shadow-neon-cyan uppercase tracking-wider font-urbanist">
-              BID ₹950
-            </button>
-          </div>
-
-          {/* Recent Bids */}
-          <div className="space-y-3">
-            <h4 className="text-electric-mint font-bold text-sm font-urbanist uppercase">Recent Bids</h4>
-            {['Rohan', 'Priya', 'Arjun'].map((name, i) => (
-              <div key={i} className="flex items-center gap-3 bg-neon-black/50 px-4 py-3 rounded-lg border border-electric-mint/20">
-                <span>🔥</span>
-                <span className="text-electric-mint font-bold font-urbanist">{name}</span>
-                <span className="text-soft-silver text-sm">bid</span>
-                <span className="text-neon-pink font-black ml-auto">₹{900 - i * 50}</span>
-              </div>
-            ))}
-          </div>
-
-          <button 
-            onClick={() => onNavigate('mobile')}
-            className="w-full py-3 bg-graphite border-2 border-neon-pink text-neon-pink font-bold rounded-lg"
-          >
-            ← BACK TO MOBILE VIEW
-          </button>
-        </div>
       </div>
     </div>
   );
 };
+
+
 
 // ============================================
 // SCREEN 3: ADMIN PANEL
@@ -712,12 +540,6 @@ const LandingPage = ({ onNavigate }) => {
           className="mt-8 flex flex-wrap gap-3 justify-center"
         >
           <button 
-            onClick={() => onNavigate('desktop')}
-            className="px-6 py-3 backdrop-blur-xl bg-white/5 border border-neon-cyan/30 text-neon-cyan text-sm font-bold rounded-xl hover:border-neon-cyan transition-all"
-          >
-            🖥️ Desktop View
-          </button>
-          <button 
             onClick={() => onNavigate('admin')}
             className="px-6 py-3 backdrop-blur-xl bg-white/5 border border-neon-pink/30 text-neon-pink text-sm font-bold rounded-xl hover:border-neon-pink transition-all"
           >
@@ -862,38 +684,12 @@ function AppContent() {
           <LiveAuctionMobile key="live" onNavigate={handleNavigate} user={user} />
         )}
 
-        {currentScreen === 'desktop' && (
-          <DesktopView key="desktop" onNavigate={handleNavigate} user={user} />
-        )}
-
         {currentScreen === 'admin' && (
           <AdminPanel key="admin" onNavigate={handleNavigate} />
         )}
       </AnimatePresence>
 
       {showWinner && <WinnerPopup onClose={() => setShowWinner(false)} />}
-
-      {/* User Profile Badge */}
-      {isAuthenticated && currentScreen !== 'landing' && currentScreen !== 'login' && (
-        <div className="fixed top-2 right-2 z-40 flex items-center gap-2">
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full flex items-center gap-2">
-            <span className="text-xl">{user?.avatar || '👤'}</span>
-            <span className="text-white text-sm font-bold font-urbanist">{user?.name}</span>
-            <button 
-              onClick={logout}
-              className="ml-2 text-neon-pink hover:text-neon-cyan transition-colors text-xs"
-              title="Logout"
-            >
-              🚪
-            </button>
-          </div>
-          {isPWA && (
-            <div className="bg-electric-mint text-neon-black px-3 py-2 rounded-full text-xs font-bold">
-              📱 APP
-            </div>
-          )}
-        </div>
-      )}
     </>
   );
 }
