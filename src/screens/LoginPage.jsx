@@ -45,36 +45,10 @@ const LoginPage = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-neon-black flex items-center justify-center overflow-hidden">
+    <div className="relative mx-auto w-full max-w-[430px] h-screen bg-black flex items-center justify-center overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 15, repeat: Infinity }}
-          className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-neon-cyan rounded-full blur-3xl"
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            rotate: [0, -90, 0],
-            opacity: [0.2, 0.3, 0.2]
-          }}
-          transition={{ duration: 20, repeat: Infinity }}
-          className="absolute -bottom-32 -right-32 w-[600px] h-[600px] bg-neon-pink rounded-full blur-3xl"
-        />
-        
-        {/* Grid */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{ 
-            backgroundImage: 'linear-gradient(#00F0FF 0.5px, transparent 0.5px), linear-gradient(90deg, #00F0FF 0.5px, transparent 0.5px)',
-            backgroundSize: '50px 50px'
-          }}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 via-black to-black" />
       </div>
 
       {/* Login Card */}
@@ -84,11 +58,8 @@ const LoginPage = ({ onLoginSuccess }) => {
         transition={{ type: "spring", stiffness: 150 }}
         className="relative z-10 w-full max-w-md mx-4"
       >
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-neon-cyan via-neon-pink to-electric-mint opacity-30 blur-3xl rounded-3xl" />
-        
         {/* Card */}
-        <div className="relative backdrop-blur-3xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-8">
+        <div className="relative bg-black border border-white/10 rounded-3xl p-8">
           
           {/* Logo */}
           <motion.div
@@ -97,84 +68,52 @@ const LoginPage = ({ onLoginSuccess }) => {
             transition={{ delay: 0.2, type: "spring" }}
             className="text-center mb-8"
           >
-            <h1 
-              className="text-7xl font-black font-urbanist mb-2"
-              style={{
-                background: 'linear-gradient(135deg, #00F0FF 0%, #FF007A 50%, #00FF85 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.6))'
-              }}
-            >
+            <h1 className="text-7xl font-black font-urbanist mb-2 text-white tracking-tighter">
               DIBS
             </h1>
-            <p className="text-white font-bold text-lg font-urbanist tracking-wider">
+            <p className="text-gray-400 font-bold text-lg font-urbanist tracking-wider">
               LIVE THRIFT DROPS
             </p>
           </motion.div>
-
-          {/* Toggle Login Method */}
-          <div className="flex gap-2 mb-6 bg-neon-black/50 p-1 rounded-xl">
-            <button
-              onClick={() => setLoginMethod('phone')}
-              className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${
-                loginMethod === 'phone'
-                  ? 'bg-neon-cyan text-neon-black'
-                  : 'text-soft-silver hover:text-white'
-              }`}
-            >
-              📱 Phone
-            </button>
-            <button
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${
-                loginMethod === 'email'
-                  ? 'bg-neon-cyan text-neon-black'
-                  : 'text-soft-silver hover:text-white'
-              }`}
-            >
-              ✉️ Email
-            </button>
-          </div>
 
           {/* Form */}
           <div className="space-y-4">
             {/* Name Input */}
             <div>
-              <label className="text-soft-silver text-sm font-bold mb-2 block font-urbanist">
-                Your Name
+              <label className="text-gray-300 text-sm font-bold mb-2 block font-urbanist">
+                Full Name
               </label>
               <input
                 type="text"
                 placeholder="Enter your name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-4 bg-neon-black/50 border-2 border-white/10 rounded-xl text-white placeholder-soft-silver/50 focus:outline-none focus:border-neon-cyan transition-all font-inter"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white transition-all font-inter text-base"
               />
             </div>
 
-            {/* Phone/Email Input */}
+            {/* Phone Input */}
             <div>
-              <label className="text-soft-silver text-sm font-bold mb-2 block font-urbanist">
-                {loginMethod === 'phone' ? 'Phone Number' : 'Email Address'}
+              <label className="text-gray-300 text-sm font-bold mb-2 block font-urbanist">
+                Registered Mobile Number
               </label>
-              {loginMethod === 'phone' ? (
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-r border-white/10 pr-3">
+                  <span className="text-lg">🇮🇳</span>
+                  <span className="text-white font-bold font-inter text-sm">+91</span>
+                </div>
                 <input
                   type="tel"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="Enter 10 digit number"
+                  maxLength={10}
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-4 bg-neon-black/50 border-2 border-white/10 rounded-xl text-white placeholder-soft-silver/50 focus:outline-none focus:border-neon-cyan transition-all font-inter"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val.length <= 10) setFormData({ ...formData, phone: val });
+                  }}
+                  className="w-full pl-24 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white transition-all font-inter text-base tracking-widest"
                 />
-              ) : (
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-4 bg-neon-black/50 border-2 border-white/10 rounded-xl text-white placeholder-soft-silver/50 focus:outline-none focus:border-neon-cyan transition-all font-inter"
-                />
-              )}
+              </div>
             </div>
 
             {/* Error Message */}
@@ -182,9 +121,11 @@ const LoginPage = ({ onLoginSuccess }) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-neon-pink/20 border border-neon-pink rounded-xl px-4 py-3"
+                className="bg-red-500/20 border border-red-500/50 rounded-xl px-4 py-3"
               >
-                <p className="text-neon-pink text-sm font-bold">⚠️ {error}</p>
+                <p className="text-red-200 text-sm font-bold flex items-center gap-2">
+                  ⚠️ {error}
+                </p>
               </motion.div>
             )}
 
@@ -194,70 +135,15 @@ const LoginPage = ({ onLoginSuccess }) => {
               whileTap={{ scale: 0.98 }}
               onClick={handleLogin}
               disabled={loading}
-              className="relative w-full py-5 rounded-2xl font-black text-xl uppercase tracking-wider overflow-hidden group disabled:opacity-50"
+              className="relative w-full py-3 rounded-lg font-black text-base uppercase tracking-wider overflow-hidden group disabled:opacity-50 mt-2 bg-white text-black"
             >
-              {/* Animated gradient */}
-              <motion.div
-                animate={{
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 bg-gradient-to-r from-neon-cyan via-electric-mint to-neon-cyan"
-                style={{ backgroundSize: '200% 200%' }}
-              />
-              
-              {/* Glow */}
-              <div className="absolute inset-0 bg-neon-cyan blur-2xl opacity-50 group-hover:opacity-75 transition-opacity" />
-              
               {/* Text */}
-              <span className="relative text-neon-black font-urbanist flex items-center justify-center gap-2">
-                {loading ? (
-                  <>
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      ⚡
-                    </motion.span>
-                    LOGGING IN...
-                  </>
-                ) : (
-                  <>
-                    <span>🚀</span>
-                    ENTER LIVE DROP
-                  </>
-                )}
+              <span className="relative font-urbanist flex items-center justify-center gap-2">
+                {loading ? 'PROCESSING...' : 'PROCEED'}
               </span>
             </motion.button>
 
-            {/* Terms */}
-            <p className="text-soft-silver/60 text-xs text-center font-inter">
-              By continuing, you agree to our{' '}
-              <button className="text-neon-cyan hover:underline">Terms</button>
-              {' '}and{' '}
-              <button className="text-neon-cyan hover:underline">Privacy Policy</button>
-            </p>
-          </div>
 
-          {/* Social Login */}
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <p className="text-soft-silver text-sm text-center mb-4 font-urbanist">
-              Or continue with
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => login({ name: 'Google User', email: 'google@user.com' })}
-                className="py-3 backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl hover:border-neon-cyan transition-all text-white font-bold text-sm"
-              >
-                🔵 Google
-              </button>
-              <button 
-                onClick={() => login({ name: 'Apple User', email: 'apple@user.com' })}
-                className="py-3 backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl hover:border-neon-pink transition-all text-white font-bold text-sm"
-              >
-                🍎 Apple
-              </button>
-            </div>
           </div>
         </div>
       </motion.div>

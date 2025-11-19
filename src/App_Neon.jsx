@@ -4,6 +4,8 @@ import Confetti from 'react-confetti';
 import { InstallPrompt, OfflineIndicator } from './components/PWAFeatures';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './screens/LoginPage';
+import ThriftBrowse from './screens/ThriftBrowse';
+import WelcomePage from './screens/WelcomePage';
 
 /**
  * DIBS - PROGRESSIVE WEB APP
@@ -15,6 +17,7 @@ import LoginPage from './screens/LoginPage';
  * - React-Confetti explosion on win
  * - Firebase real-time bid updates trigger animations
  * - Secure authentication with useAuth hook
+ * - Whatnot-style clean interface option
  */
 
 // ============================================
@@ -57,9 +60,9 @@ const LiveAuctionMobile = ({ onNavigate }) => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-neon-black overflow-hidden">
+    <div className="relative w-full h-screen bg-black overflow-hidden">
       {/* Premium Video Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-graphite to-black">
+      <div className="absolute inset-0 bg-black">
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -67,33 +70,9 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             transition={{ duration: 1 }}
             className="text-center"
           >
-            <div className="text-8xl mb-4">📹</div>
-            <p className="text-soft-silver text-lg font-urbanist font-bold tracking-wider">LIVE STREAM</p>
+            <div className="text-8xl mb-4 grayscale opacity-50">📹</div>
+            <p className="text-gray-600 text-lg font-urbanist font-bold tracking-wider">LIVE STREAM</p>
           </motion.div>
-        </div>
-        {/* Animated Gradient Orbs */}
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-cyan/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-pink/20 rounded-full blur-3xl"
-        />
-        {/* Refined Grid */}
-        <div className="absolute inset-0 opacity-10" 
-             style={{ 
-               backgroundImage: 'linear-gradient(#00F0FF 0.5px, transparent 0.5px), linear-gradient(90deg, #00F0FF 0.5px, transparent 0.5px)', 
-               backgroundSize: '40px 40px' 
-             }}>
         </div>
       </div>
 
@@ -108,11 +87,11 @@ const LiveAuctionMobile = ({ onNavigate }) => {
               transition={{ type: "spring", stiffness: 200 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-neon-pink rounded-full blur-lg opacity-50 animate-pulse" />
-              <div className="relative flex items-center gap-2 bg-gradient-to-r from-neon-pink to-pink-600 px-4 py-2 rounded-full shadow-2xl">
-                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                <div className="w-2 h-2 bg-white rounded-full absolute left-4 animate-pulse" />
-                <span className="text-white font-black text-sm uppercase tracking-widest font-urbanist">LIVE</span>
+              <div className="absolute inset-0 bg-white rounded-full blur-lg opacity-20 animate-pulse" />
+              <div className="relative flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-2xl">
+                <div className="w-2 h-2 bg-red-600 rounded-full animate-ping" />
+                <div className="w-2 h-2 bg-red-600 rounded-full absolute left-4 animate-pulse" />
+                <span className="text-black font-black text-sm uppercase tracking-widest font-urbanist">LIVE</span>
               </div>
             </motion.div>
             
@@ -131,11 +110,11 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="backdrop-blur-2xl bg-neon-cyan/20 px-5 py-2 rounded-full border-2 border-neon-cyan"
+            className="backdrop-blur-2xl bg-white/10 px-5 py-2 rounded-full border border-white/20"
           >
             <div className="flex items-center gap-2">
-              <span className="text-neon-cyan font-black text-lg font-urbanist">{timeLeft}s</span>
-              <span className="text-xs text-soft-silver font-inter">left</span>
+              <span className="text-white font-black text-lg font-urbanist">{timeLeft}s</span>
+              <span className="text-xs text-gray-300 font-inter">left</span>
             </div>
           </motion.div>
         </div>
@@ -144,7 +123,7 @@ const LiveAuctionMobile = ({ onNavigate }) => {
       {/* Premium Bottom Section */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
         {/* Enhanced Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-neon-black via-neon-black/95 to-transparent" 
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent" 
              style={{ height: '70%' }} />
         
         {/* Content */}
@@ -157,25 +136,24 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             transition={{ type: "spring", stiffness: 100 }}
             className="relative overflow-hidden rounded-3xl"
           >
-            {/* Glowing border effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-neon-cyan via-neon-pink to-electric-mint opacity-50 blur-xl" />
+            {/* Glowing border effect - Removed for Black/Off-White Theme */}
             
-            <div className="relative backdrop-blur-3xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-6">
+            <div className="relative backdrop-blur-3xl bg-white/5 border border-white/10 rounded-3xl p-6">
               <div className="flex gap-4 items-start">
                 {/* Premium Image with glow */}
                 <motion.div 
                   whileHover={{ scale: 1.05 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-neon-pink rounded-2xl blur-xl opacity-60" />
-                  <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-neon-pink/50 shadow-2xl">
+                  <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-40" />
+                  <div className="relative w-32 h-32 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
                     <img 
                       src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop" 
                       alt="Item" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover grayscale"
                     />
                     {/* Condition Badge */}
-                    <div className="absolute top-2 right-2 bg-electric-mint text-neon-black text-xs font-black px-2 py-1 rounded-full">
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-black text-xs font-black px-2 py-1 rounded-full">
                       9/10
                     </div>
                   </div>
@@ -187,10 +165,10 @@ const LiveAuctionMobile = ({ onNavigate }) => {
                       <h3 className="text-white font-black text-xl mb-1 font-urbanist leading-tight">
                         Vintage Nike Tee
                       </h3>
-                      <p className="text-soft-silver/80 text-sm font-inter">Size L • 90s Era • Mint</p>
+                      <p className="text-gray-400 text-sm font-inter">Size L • 90s Era • Mint</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-electric-mint text-xs font-bold">{bidCount} bids</p>
+                      <p className="text-white text-xs font-bold">{bidCount} bids</p>
                     </div>
                   </div>
                   
@@ -206,14 +184,8 @@ const LiveAuctionMobile = ({ onNavigate }) => {
                       }}
                       className="relative"
                     >
-                      <div className="absolute inset-0 bg-neon-cyan rounded-lg blur-2xl opacity-50" />
-                      <div className="relative text-6xl font-black font-urbanist"
-                           style={{ 
-                             background: 'linear-gradient(135deg, #00F0FF 0%, #00FF85 100%)',
-                             WebkitBackgroundClip: 'text',
-                             WebkitTextFillColor: 'transparent',
-                             filter: 'drop-shadow(0 0 20px #00F0FF)'
-                           }}>
+                      <div className="absolute inset-0 bg-white/20 rounded-lg blur-2xl opacity-50" />
+                      <div className="relative text-6xl font-black font-urbanist text-white">
                         ₹{currentPrice}
                       </div>
                     </motion.div>
@@ -221,7 +193,7 @@ const LiveAuctionMobile = ({ onNavigate }) => {
                       <motion.span
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        className="text-electric-mint text-2xl"
+                        className="text-white text-2xl"
                       >
                         ✓
                       </motion.span>
@@ -244,22 +216,19 @@ const LiveAuctionMobile = ({ onNavigate }) => {
                   type: "spring",
                   stiffness: 200
                 }}
-                className="group relative overflow-hidden backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/10 hover:border-electric-mint/50 transition-all"
+                className="group relative overflow-hidden backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/10 hover:border-white/30 transition-all"
               >
-                {/* Hover glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-electric-mint/0 via-electric-mint/10 to-electric-mint/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                
                 <div className="relative flex items-center gap-3 px-4 py-3">
                   <div className="text-2xl">{bid.avatar}</div>
                   <div className="flex-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-white font-bold text-sm font-urbanist">{bid.name}</span>
-                      <span className="text-soft-silver/60 text-xs font-inter">{bid.time}</span>
+                      <span className="text-gray-400 text-xs font-inter">{bid.time}</span>
                     </div>
-                    <span className="text-soft-silver/80 text-xs font-inter">placed a bid</span>
+                    <span className="text-gray-500 text-xs font-inter">placed a bid</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-neon-cyan font-black text-lg font-urbanist">₹{bid.amount}</div>
+                    <div className="text-white font-black text-lg font-urbanist">₹{bid.amount}</div>
                   </div>
                 </div>
               </motion.div>
@@ -281,19 +250,19 @@ const LiveAuctionMobile = ({ onNavigate }) => {
               transition={{ duration: 3, repeat: Infinity }}
               className={`absolute inset-0 ${
                 isWinning
-                  ? 'bg-gradient-to-r from-electric-mint via-neon-cyan to-electric-mint'
-                  : 'bg-gradient-to-r from-neon-cyan via-blue-400 to-neon-cyan'
+                  ? 'bg-white'
+                  : 'bg-white'
               }`}
               style={{ backgroundSize: '200% 200%' }}
             />
             
             {/* Glow effect */}
             <div className={`absolute inset-0 blur-2xl opacity-50 ${
-              isWinning ? 'bg-electric-mint' : 'bg-neon-cyan'
+              isWinning ? 'bg-white' : 'bg-white'
             }`} />
             
             {/* Button content */}
-            <div className="relative flex items-center justify-center gap-3 font-urbanist">
+            <div className="relative flex items-center justify-center gap-3 font-urbanist text-black">
               {isWinning ? (
                 <>
                   <motion.span
@@ -303,16 +272,16 @@ const LiveAuctionMobile = ({ onNavigate }) => {
                   >
                     ✓
                   </motion.span>
-                  <span className="text-neon-black">YOU'RE WINNING!</span>
+                  <span className="text-black">YOU'RE WINNING!</span>
                 </>
               ) : (
                 <>
-                  <span className="text-neon-black">BID</span>
+                  <span className="text-black">BID</span>
                   <motion.span
                     key={currentPrice}
                     initial={{ scale: 1.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-neon-black font-black"
+                    className="text-black font-black"
                   >
                     ₹{currentPrice + 50}
                   </motion.span>
@@ -331,7 +300,7 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             <motion.div
               initial={{ scale: 0, opacity: 0.5 }}
               whileTap={{ scale: 2, opacity: 0 }}
-              className="absolute inset-0 bg-white rounded-3xl"
+              className="absolute inset-0 bg-black/10 rounded-3xl"
             />
           </motion.button>
 
@@ -339,13 +308,13 @@ const LiveAuctionMobile = ({ onNavigate }) => {
           <div className="flex gap-2 pt-2">
             <button 
               onClick={() => onNavigate('desktop')}
-              className="flex-1 py-2 bg-graphite/50 border border-neon-pink/50 text-neon-pink text-xs font-bold rounded-lg"
+              className="flex-1 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-lg"
             >
               DESKTOP VIEW
             </button>
             <button 
               onClick={() => onNavigate('admin')}
-              className="flex-1 py-2 bg-graphite/50 border border-neon-cyan/50 text-neon-cyan text-xs font-bold rounded-lg"
+              className="flex-1 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-lg"
             >
               ADMIN PANEL
             </button>
@@ -360,7 +329,7 @@ const LiveAuctionMobile = ({ onNavigate }) => {
           height={window.innerHeight}
           numberOfPieces={200}
           gravity={0.3}
-          colors={['#00F0FF', '#FF007A', '#00FF85', '#FFFFFF']} // Neon cyber colors!
+          colors={['#FFFFFF', '#CCCCCC', '#999999', '#000000']} // Monochrome colors!
           recycle={false}
           className="z-50"
         />
@@ -866,13 +835,8 @@ function AppContent() {
   };
 
   const handleLoginSuccess = () => {
-    setCurrentScreen('landing');
+    setCurrentScreen('live');
   };
-
-  // Show login page if not authenticated
-  if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
-  }
 
   return (
     <>
@@ -882,33 +846,54 @@ function AppContent() {
 
       {/* Main App Screens */}
       <AnimatePresence mode="wait">
-        {currentScreen === 'landing' && <LandingPage onNavigate={handleNavigate} />}
-        {currentScreen === 'mobile' && <LiveAuctionMobile onNavigate={handleNavigate} user={user} />}
-        {currentScreen === 'desktop' && <DesktopView onNavigate={handleNavigate} user={user} />}
-        {currentScreen === 'admin' && <AdminPanel onNavigate={handleNavigate} />}
+        {currentScreen === 'landing' && (
+          <WelcomePage key="landing" onNavigate={handleNavigate} />
+        )}
+        
+        {currentScreen === 'login' && (
+          <LoginPage key="login" onLoginSuccess={handleLoginSuccess} />
+        )}
+        
+        {currentScreen === 'thrift' && (
+          <ThriftBrowse key="thrift" onNavigate={handleNavigate} />
+        )}
+
+        {(currentScreen === 'live' || currentScreen === 'mobile') && (
+          <LiveAuctionMobile key="live" onNavigate={handleNavigate} user={user} />
+        )}
+
+        {currentScreen === 'desktop' && (
+          <DesktopView key="desktop" onNavigate={handleNavigate} user={user} />
+        )}
+
+        {currentScreen === 'admin' && (
+          <AdminPanel key="admin" onNavigate={handleNavigate} />
+        )}
       </AnimatePresence>
 
       {showWinner && <WinnerPopup onClose={() => setShowWinner(false)} />}
 
       {/* User Profile Badge */}
-      <div className="fixed top-2 right-2 z-40 flex items-center gap-2">
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full flex items-center gap-2">
-          <span className="text-xl">{user?.avatar || '👤'}</span>
-          <span className="text-white text-sm font-bold font-urbanist">{user?.name}</span>
-          <button 
-            onClick={logout}
-            className="ml-2 text-neon-pink hover:text-neon-cyan transition-colors text-xs"
-            title="Logout"
-          >
-            🚪
-          </button>
-        </div>
-        {isPWA && (
-          <div className="bg-electric-mint text-neon-black px-3 py-2 rounded-full text-xs font-bold">
-            📱 APP
+      {isAuthenticated && currentScreen !== 'landing' && currentScreen !== 'login' && (
+        <div className="fixed top-2 right-2 z-40 flex items-center gap-2">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full flex items-center gap-2">
+            <span className="text-xl">{user?.avatar || '👤'}</span>
+            <span className="text-white text-sm font-bold font-urbanist">{user?.name}</span>
+            <button 
+              onClick={logout}
+              className="ml-2 text-neon-pink hover:text-neon-cyan transition-colors text-xs"
+              title="Logout"
+            >
+              🚪
+            </button>
           </div>
-        )}
-      </div>
+          {isPWA && (
+            <div className="bg-electric-mint text-neon-black px-3 py-2 rounded-full text-xs font-bold">
+              📱 APP
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
