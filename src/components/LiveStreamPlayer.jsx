@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import zg from '../lib/zegoEngine';
 import { ROOM_ID, HOST_STREAM_ID, VIEWER_TOKEN, VIEWER_USER_ID } from '../lib/zegoConfig';
 
-const LiveStreamPlayer = () => {
+let viewerSessionLock = false;
+
+const LiveStreamPlayer = ({ streamId = HOST_STREAM_ID, roomId = ROOM_ID }) => {
   const videoRef = useRef(null);
   const [status, setStatus] = useState('Connecting...');
   const [errorDetails, setErrorDetails] = useState('');
@@ -20,13 +22,13 @@ const LiveStreamPlayer = () => {
     let isMounted = true;
 
     const detachHandlers = () => {
-      zg.off('roomStreamUpdate');
-      zg.off('playerStateUpdate');
+      zg.off('roomStreamUpdate', handleStreamUpdate);
+      zg.off('playerStateUpdate', handlePlayerUpdate);
     };
 
     const playHostStream = async () => {
       try {
-        const stream = await zg.startPlayingStream(HOST_STREAM_ID);
+        const stream = await zg.startPlayingStream(streamId);
         if (!isMounted) {
           return;
         }
@@ -43,54 +45,74 @@ const LiveStreamPlayer = () => {
       }
     };
 
-    const initViewer = async () => {
+    const handleStreamUpdate = async (_roomID, updateType, streamList, _extra) => {
+      if (!isMounted) {
+        return;
+      }
+      if (updateType === 'ADD') {
+        const hasHostStream = streamList.some(stream => stream.streamID === streamId);
+        if (hasHostStream) {
+          await playHostStream();
+        }
+      }
+      if (updateType === 'DELETE') {
+        const removedHost = streamList.some(stream => stream.streamID === streamId);
+        if (removedHost) {
+          setStatus('Host ended the stream');
+          if (videoRef.current) {
+            videoRef.current.srcObject = null;
+          }
+        }
+      }
+    };
+
+    const handlePlayerUpdate = (_streamId, state, error) => {
+      if (!isMounted) {
+        return;
+      }
+      if (state === 'PLAY_REQUESTING') {
+        setStatus('Starting stream...');
+      } else if (state === 'PLAYING') {
+        setStatus('');
+        setErrorDetails('');
+      } else if (state === 'NO_PLAY') {
+        setStatus('Unable to play stream');
+        if (error) {
+          setErrorDetails(`${error?.code ?? ''} ${error?.message ?? ''}`.trim());
+        }
+      }
+    };
+
+    const MAX_RETRIES = 3;
+
+    const initViewer = async (attempt = 0) => {
       try {
+        if (viewerSessionLock) {
+          setStatus('Viewer already connected');
+          return;
+        }
+
+        viewerSessionLock = true;
         setStatus('Joining room...');
-        await zg.loginRoom(ROOM_ID, VIEWER_TOKEN, { userID: VIEWER_USER_ID, userName: 'Viewer' });
+        clearRetryTimer();
+        detachHandlers();
+
+        // Clean up previous session if any
+        try {
+          await zg.logoutRoom(roomId);
+        } catch (e) {
+          // ignore
+        }
+
+        await zg.loginRoom(roomId, VIEWER_TOKEN, { userID: VIEWER_USER_ID, userName: 'Viewer' });
 
         if (!isMounted) {
+          viewerSessionLock = false;
           return;
         }
 
         retryCountRef.current = 0;
         setStatus('Waiting for host...');
-
-        const handleStreamUpdate = async (_roomID, updateType, streamList, _extra) => {
-          if (!isMounted) {
-            return;
-          }
-          if (updateType === 'ADD') {
-            const hasHostStream = streamList.some(stream => stream.streamID === HOST_STREAM_ID);
-            if (hasHostStream) {
-              await playHostStream();
-            }
-          }
-          if (updateType === 'DELETE') {
-            const removedHost = streamList.some(stream => stream.streamID === HOST_STREAM_ID);
-            if (removedHost) {
-              setStatus('Host ended the stream');
-              if (videoRef.current) {
-                videoRef.current.srcObject = null;
-              }
-            }
-          }
-        };
-
-        const handlePlayerUpdate = (_streamId, state, error) => {
-          if (!isMounted) {
-            return;
-          }
-          if (state === 'PLAY_REQUESTING') {
-            setStatus('Starting stream...');
-          } else if (state === 'PLAYING') {
-            setStatus('');
-          } else if (state === 'NO_PLAY') {
-            setStatus('Unable to play stream');
-            if (error) {
-              setErrorDetails(`${error?.code ?? ''} ${error?.message ?? ''}`.trim());
-            }
-          }
-        };
 
         zg.on('roomStreamUpdate', handleStreamUpdate);
         zg.on('playerStateUpdate', handlePlayerUpdate);
@@ -98,43 +120,28 @@ const LiveStreamPlayer = () => {
         await playHostStream();
       } catch (error) {
         if (!isMounted) {
+          viewerSessionLock = false;
+          return;
+        }
+        console.error('Viewer init error:', error);
+        viewerSessionLock = false;
+
+        // Upper limit happens if the previous connection has not fully released yet.
+        if (error?.code === 1002001 && attempt < MAX_RETRIES) {
+          const nextAttempt = attempt + 1;
+          setStatus(`Reconnecting... (attempt ${nextAttempt})`);
+          setErrorDetails('Previous viewer session still closing. Retrying shortly.');
+          clearRetryTimer();
+          retryTimerRef.current = setTimeout(() => {
+            if (isMounted) {
+              initViewer(nextAttempt);
+            }
+          }, 1500);
           return;
         }
 
-        console.error('Viewer error:', error);
-        let message = 'Connection error';
-        let detail = '';
-
-        const errCode = error?.code ?? error?.errorCode;
-        if (errCode === 50122) {
-          message = 'Viewer token userId mismatch';
-          detail = 'Generate a token for user "dibs-viewer" in the ZEGO console.';
-        } else if (errCode === 20014) {
-          message = 'Viewer login failed';
-        } else if (errCode === 1100002) {
-          message = 'Network timeout while joining room';
-          detail = 'The request to ZEGO timed out. Check your internet connection or try again.';
-
-          if (retryCountRef.current < 5) {
-            const nextDelay = Math.min(5000, 2000 + retryCountRef.current * 1000);
-            retryCountRef.current += 1;
-            setStatus(`${message} – retrying in ${Math.round(nextDelay / 1000)}s`);
-            setErrorDetails(detail);
-            clearRetryTimer();
-            retryTimerRef.current = setTimeout(() => {
-              if (!isMounted) {
-                return;
-              }
-              initViewer();
-            }, nextDelay);
-            return;
-          } else {
-            detail = `${detail || ''} Reached retry limit.`.trim();
-          }
-        }
-
-        setStatus(message);
-        setErrorDetails(detail || (error?.message ?? JSON.stringify(error)));
+        setStatus('Connection failed');
+        setErrorDetails(error?.message ?? '');
       }
     };
 
@@ -142,19 +149,17 @@ const LiveStreamPlayer = () => {
 
     return () => {
       isMounted = false;
-      detachHandlers();
       clearRetryTimer();
+      detachHandlers();
       try {
-        zg.logoutRoom(ROOM_ID);
-      } catch (err) {
-        console.warn('Viewer cleanup logout warning:', err);
+        zg.stopPlayingStream(streamId);
+        zg.logoutRoom(roomId);
+      } catch (e) {
+        console.warn("Cleanup error", e);
       }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
+      viewerSessionLock = false;
     };
-  }, []);
-
+  }, [streamId, roomId]);
   return (
     <div className="absolute inset-0 bg-black">
       <video
@@ -180,3 +185,4 @@ const LiveStreamPlayer = () => {
 };
 
 export default LiveStreamPlayer;
+

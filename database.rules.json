@@ -1,5 +1,9 @@
 {
   "rules": {
+    "current_stream": {
+      ".read": true,
+      ".write": true
+    },
     "auctions": {
       "$auctionId": {
         ".read": true,
