@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { InstallPrompt, OfflineIndicator } from './components/PWAFeatures';
@@ -41,7 +41,13 @@ const LiveAuctionMobile = ({ onNavigate }) => {
     { id: 1, user: 'vintage_king', text: 'Is this true to size?', color: 'text-gray-400' },
     { id: 2, user: 'sneaker_head', text: 'Bid placed! 🔥', color: 'text-gray-400' },
     { id: 3, user: 'thrift_queen', text: 'Love the color on this one', color: 'text-gray-400' },
+    { id: 4, user: 'style_hunter', text: 'Wow! Amazing piece', color: 'text-gray-400' },
+    { id: 5, user: 'retro_vibes', text: 'What year is this from?', color: 'text-gray-400' },
+    { id: 6, user: 'fashion_guru', text: 'Need this in my collection', color: 'text-gray-400' },
+    { id: 7, user: 'cool_kid', text: 'How much is it now?', color: 'text-gray-400' },
+    { id: 8, user: 'bidder_pro', text: 'Going to bid on this', color: 'text-gray-400' },
   ]);
+  const chatRef = useRef(null);
 
   useEffect(() => {
     const streamRef = ref(db, 'current_stream');
@@ -56,6 +62,13 @@ const LiveAuctionMobile = ({ onNavigate }) => {
     setPriceKey(prev => prev + 1);
     setCustomBidAmount(currentPrice + 50);
   }, [currentPrice]);
+
+  // Auto-scroll chat to bottom when new message arrives
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // Timer countdown
   useEffect(() => {
@@ -161,10 +174,23 @@ const LiveAuctionMobile = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* 3. Left-side Chat Overlay */}
-      <div className="absolute bottom-32 left-4 w-64 h-48 overflow-hidden mask-image-linear-gradient-to-t">
-        <div className="flex flex-col justify-end h-full space-y-2">
-          {messages.slice(-5).map((msg) => (
+      {/* 3. Left-side Chat Overlay - Scrollable */}
+      <div 
+        ref={chatRef}
+        className="absolute bottom-[170px] left-4 w-64 h-[22vh] overflow-y-scroll"
+        style={{
+          maskImage: 'linear-gradient(to top, transparent 5%, black 15%)',
+          WebkitMaskImage: 'linear-gradient(to top, transparent 5%, black 15%)',
+          scrollbarWidth: 'none',
+        }}
+      >
+        <style>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="flex flex-col space-y-2 pb-4">
+          {messages.map((msg) => (
             <motion.div 
               key={msg.id}
               initial={{ opacity: 0, y: 10 }}
@@ -178,8 +204,19 @@ const LiveAuctionMobile = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Highest Bidder Badge - Right Side */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="absolute bottom-[170px] right-4 bg-black/50 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2.5"
+      >
+        <p className="text-white text-sm font-bold">
+          {isWinning ? 'You' : 'helna'} <span className="text-gray-300 font-medium">₹{currentPrice}</span>
+        </p>
+      </motion.div>
+
       {/* 4. Chat Input */}
-      <div className="absolute bottom-[90px] left-4 right-20 z-30">
+      <div className="absolute bottom-[115px] left-4 right-4 z-30">
         <form onSubmit={handleSendMessage} className="relative">
           <input 
             type="text" 
