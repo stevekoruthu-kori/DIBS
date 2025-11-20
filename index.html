@@ -4,51 +4,47 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     
-    <!-- PWA META TAGS - Makes it a Web App -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="DIBS - Neon Cyber-Streetwear Live Thrift Auction Web App" />
     
-    <!-- Makes it installable like a native app -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="DIBS" />
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- App Icons -->
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
     
-    <!-- Preload fonts for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <title>DIBS - Live Thrift Drops</title>
-  </head>
+
+    <script>
+      (function() {
+        const originalAlert = window.alert;
+        window.alert = function(message) {
+          try {
+            const msg = String(message).toLowerCase();
+            // Block specific zombie alerts we identified
+            if (msg.includes("error") || msg.includes("fail") || msg.includes("code") || msg.includes("timeout")) {
+              console.warn("🚫 Blocked Zombie Alert:", message);
+              return; // Silently block it
+            }
+          } catch (e) {}
+          
+          // Allow legitimate alerts (if any)
+          originalAlert(message);
+        };
+      })();
+    </script>
+    </head>
   <body class="overflow-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     
-    <!-- PWA Service Worker Registration -->
-    <!-- <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => {
-              console.log('✅ DIBS Web App Ready');
-              // Show install prompt on supported devices
-              window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                window.deferredPrompt = e;
-                console.log('💾 App can be installed');
-              });
-            })
-            .catch(err => console.log('❌ Service Worker failed:', err));
-        });
-      }
-    </script> -->
-  </body>
+    </body>
 </html>
