@@ -6,6 +6,15 @@ const LiveStreamPlayer = () => {
   const videoRef = useRef(null);
   const [status, setStatus] = useState('Connecting...');
   const [errorDetails, setErrorDetails] = useState('');
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef(null);
+
+  const clearRetryTimer = () => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -43,6 +52,7 @@ const LiveStreamPlayer = () => {
           return;
         }
 
+        retryCountRef.current = 0;
         setStatus('Waiting for host...');
 
         const handleStreamUpdate = async (_roomID, updateType, streamList, _extra) => {
@@ -103,6 +113,24 @@ const LiveStreamPlayer = () => {
           message = 'Viewer login failed';
         } else if (errCode === 1100002) {
           message = 'Network timeout while joining room';
+          detail = 'The request to ZEGO timed out. Check your internet connection or try again.';
+
+          if (retryCountRef.current < 5) {
+            const nextDelay = Math.min(5000, 2000 + retryCountRef.current * 1000);
+            retryCountRef.current += 1;
+            setStatus(`${message} – retrying in ${Math.round(nextDelay / 1000)}s`);
+            setErrorDetails(detail);
+            clearRetryTimer();
+            retryTimerRef.current = setTimeout(() => {
+              if (!isMounted) {
+                return;
+              }
+              initViewer();
+            }, nextDelay);
+            return;
+          } else {
+            detail = `${detail || ''} Reached retry limit.`.trim();
+          }
         }
 
         setStatus(message);
@@ -115,6 +143,7 @@ const LiveStreamPlayer = () => {
     return () => {
       isMounted = false;
       detachHandlers();
+      clearRetryTimer();
       try {
         zg.logoutRoom(ROOM_ID);
       } catch (err) {

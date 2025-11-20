@@ -145,7 +145,24 @@ const HostScreen = () => {
   };
 
   useEffect(() => {
+    const handleDisconnect = (error) => {
+      console.warn('Host room state changed:', error);
+      if (error?.errorCode) {
+        setStatus(`Disconnected (${error.errorCode})`);
+        setError(`Room connection issue: ${error.errorCode} ${error.errorMessage || ''}`.trim());
+      }
+      setIsLive(false);
+      cleanupLocalStream();
+    };
+
+    zg.on('roomStateUpdate', (_roomId, state, error) => {
+      if (state === 'DISCONNECTED' || state === 'CONNECT_FAILED') {
+        handleDisconnect(error);
+      }
+    });
+
     return () => {
+      zg.off('roomStateUpdate');
       try {
         zg.stopPublishingStream(hostStreamId);
       } catch (publishError) {

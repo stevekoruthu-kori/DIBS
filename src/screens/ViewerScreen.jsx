@@ -13,6 +13,8 @@ function ViewerScreen({
   const [status, setStatus] = useState('Connecting...');
   const [details, setDetails] = useState('');
   const [isStreamVisible, setIsStreamVisible] = useState(false);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef(null);
 
   const resolveToken = useCallback(async () => {
     if (typeof fetchToken === 'function') {
@@ -45,6 +47,13 @@ function ViewerScreen({
         remoteVideoRef.current.srcObject = null;
       }
       setIsStreamVisible(false);
+    };
+
+    const clearRetryTimer = () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
     };
 
     const detachHandlers = () => {
@@ -90,6 +99,7 @@ function ViewerScreen({
           return;
         }
 
+        retryCountRef.current = 0;
         setStatus('Waiting for host...');
 
         const handleStreamUpdate = async (_roomID, updateType, streamList) => {
@@ -154,6 +164,24 @@ function ViewerScreen({
           message = 'Viewer login failed';
         } else if (errCode === 1100002) {
           message = 'Network timeout while joining room';
+          detail = 'Check connectivity, VPNs, or corporate firewalls and retry.';
+
+          if (retryCountRef.current < 5) {
+            const nextDelay = Math.min(5000, 2000 + retryCountRef.current * 1000);
+            retryCountRef.current += 1;
+            setStatus(`${message} – retrying in ${Math.round(nextDelay / 1000)}s`);
+            setDetails(detail);
+            clearRetryTimer();
+            retryTimerRef.current = setTimeout(() => {
+              if (!mounted) {
+                return;
+              }
+              init();
+            }, nextDelay);
+            return;
+          } else {
+            detail = `${detail || ''} Reached retry limit.`.trim();
+          }
         }
 
         setStatus(message);
@@ -167,6 +195,7 @@ function ViewerScreen({
     return () => {
       mounted = false;
       detachHandlers();
+      clearRetryTimer();
       try {
         zg.logoutRoom(roomId);
       } catch (err) {
