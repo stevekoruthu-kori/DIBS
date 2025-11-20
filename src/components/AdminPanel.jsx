@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdmin } from '../hooks/useAdmin';
+import { fetchZegoToken, shouldUseDynamicTokens } from '../services/streamTokenService';
+import HostView from '../../dibs-live-stream-export/HostView.jsx';
 
 /**
  * AdminPanel - Hidden host controls
@@ -14,13 +16,14 @@ export const AdminPanel = () => {
     bidIncrement: 50,
     duration: 60000 // 60 seconds
   });
+  const [hostConsoleVisible, setHostConsoleVisible] = useState(false);
 
-  const { startAuction, stopAuction, currentAuctionId, loading } = useAdmin();
+  const { startAuction, stopAuction, currentAuctionId, streamConfig, loading } = useAdmin();
 
   const handleStart = async () => {
     const result = await startAuction(itemData);
     if (result.success) {
-      alert(`Auction started! ID: ${result.auctionId}`);
+      alert(`Auction started!\nID: ${result.auctionId}\nRoom: ${result.streamConfig?.roomId}`);
     }
   };
 
@@ -30,6 +33,12 @@ export const AdminPanel = () => {
       alert('Auction stopped!');
     }
   };
+
+  useEffect(() => {
+    if (!currentAuctionId) {
+      setHostConsoleVisible(false);
+    }
+  }, [currentAuctionId]);
 
   return (
     <>
@@ -58,12 +67,23 @@ export const AdminPanel = () => {
               <p className="text-green-400 mb-2">
                 ✓ Auction Active: {currentAuctionId}
               </p>
+              {streamConfig?.roomId && (
+                <p className="text-sm text-white/70 mb-4">
+                  Room ID: <span className="font-mono">{streamConfig.roomId}</span>
+                </p>
+              )}
               <button
                 onClick={handleStop}
                 disabled={loading}
                 className="w-full bg-red-500 text-white py-2 rounded-lg font-semibold"
               >
                 {loading ? 'Stopping...' : 'Stop Auction'}
+              </button>
+              <button
+                onClick={() => setHostConsoleVisible(true)}
+                className="w-full mt-3 bg-dibs-accent text-black py-2 rounded-lg font-semibold"
+              >
+                Launch Host Console
               </button>
             </div>
           ) : (
@@ -98,6 +118,25 @@ export const AdminPanel = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {hostConsoleVisible && streamConfig?.roomId && (
+        <div className="fixed inset-0 z-[60] bg-black">
+          <button
+            type="button"
+            onClick={() => setHostConsoleVisible(false)}
+            className="absolute top-4 right-4 z-[70] bg-white/10 text-white px-4 py-2 rounded-full border border-white/20"
+          >
+            Close Host Console
+          </button>
+          <HostView
+            roomId={streamConfig.roomId}
+            hostStreamId={streamConfig.hostStreamId}
+            hostUserId={streamConfig.hostUserId}
+            fetchToken={shouldUseDynamicTokens ? fetchZegoToken : undefined}
+            displayName="Admin Host"
+          />
         </div>
       )}
     </>

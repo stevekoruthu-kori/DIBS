@@ -7,6 +7,7 @@ import { startAuction, stopAuction } from '../services/auctionService';
  */
 export const useAdmin = () => {
   const [currentAuctionId, setCurrentAuctionId] = useState(null);
+  const [streamConfig, setStreamConfig] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -19,9 +20,10 @@ export const useAdmin = () => {
     setError(null);
     
     try {
-      const auctionId = await startAuction(itemData);
+      const { auctionId, streamConfig: createdStreamConfig } = await startAuction(itemData);
       setCurrentAuctionId(auctionId);
-      return { success: true, auctionId };
+      setStreamConfig(createdStreamConfig);
+      return { success: true, auctionId, streamConfig: createdStreamConfig };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
@@ -45,6 +47,7 @@ export const useAdmin = () => {
     try {
       await stopAuction(currentAuctionId);
       setCurrentAuctionId(null);
+      setStreamConfig(null);
       return { success: true };
     } catch (err) {
       setError(err.message);
@@ -56,6 +59,7 @@ export const useAdmin = () => {
 
   return {
     currentAuctionId,
+    streamConfig,
     loading,
     error,
     startAuction: handleStartAuction,

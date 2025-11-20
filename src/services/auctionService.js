@@ -92,6 +92,18 @@ export const getTimeRemaining = (endTime) => {
 export const startAuction = async (itemData) => {
   const auctionId = `auction_${Date.now()}`;
   const auctionRef = ref(db, `auctions/${auctionId}`);
+
+  const roomId = itemData?.roomId || `dibs-room-${auctionId}`;
+  const hostStreamId = itemData?.hostStreamId || `${roomId}-host`;
+  const hostUserId = itemData?.hostUserId || 'dibs-host';
+  const viewerUserId = itemData?.viewerUserId || 'dibs-viewer';
+  const streamConfig = {
+    roomId,
+    hostStreamId,
+    hostUserId,
+    viewerUserId,
+    createdAt: Date.now()
+  };
   
   await set(auctionRef, {
     status: "active",
@@ -101,10 +113,11 @@ export const startAuction = async (itemData) => {
     startTime: Date.now(),
     endTime: Date.now() + (itemData.duration || 60000), // 60 seconds default
     currentBidder: null,
-    viewers: 0
+    viewers: 0,
+    streamConfig
   });
   
-  return auctionId;
+  return { auctionId, streamConfig };
 };
 
 /**
@@ -115,6 +128,7 @@ export const stopAuction = async (auctionId) => {
   const auctionRef = ref(db, `auctions/${auctionId}`);
   await update(auctionRef, { 
     status: "ended",
-    endTime: Date.now()
+    endTime: Date.now(),
+    streamConfig: null
   });
 };
