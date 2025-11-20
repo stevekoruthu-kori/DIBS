@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { InstallPrompt, OfflineIndicator } from './components/PWAFeatures';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { db } from './lib/firebase';
+import { ref, onValue } from 'firebase/database';
 import LoginPage from './screens/LoginPage';
 import ThriftBrowse from './screens/ThriftBrowse';
 import WelcomePage from './screens/WelcomePage';
@@ -26,6 +28,7 @@ import LiveStreamPlayer from './components/LiveStreamPlayer';
 // ============================================
 
 const LiveAuctionMobile = ({ onNavigate, auctionState, setAuctionState }) => {
+  const [activeStream, setActiveStream] = useState(null);
   const { currentPrice, bidCount, isLive } = auctionState;
   const [isWinning, setIsWinning] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -44,6 +47,15 @@ const LiveAuctionMobile = ({ onNavigate, auctionState, setAuctionState }) => {
     { id: 8, user: 'bidder_pro', text: 'Going to bid on this', color: 'text-gray-400' },
   ]);
   const chatRef = useRef(null);
+
+  useEffect(() => {
+    const streamRef = ref(db, 'current_stream');
+    const unsubscribe = onValue(streamRef, (snapshot) => {
+      const data = snapshot.val();
+      setActiveStream(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     setPriceKey(prev => prev + 1);
@@ -114,7 +126,15 @@ const LiveAuctionMobile = ({ onNavigate, auctionState, setAuctionState }) => {
       <div className="relative w-full max-w-[480px] h-full bg-black shadow-2xl overflow-hidden">
       {/* 1. Full-screen Video Background */}
       <div className="absolute inset-0 bg-gray-900">
-        <LiveStreamPlayer isLive={isLive} />
+        {activeStream ? (
+          <LiveStreamPlayer streamId={activeStream.streamId} roomId={activeStream.roomId} />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-white p-4 text-center">
+            <div className="animate-pulse text-4xl mb-4">📡</div>
+            <h2 className="text-xl font-bold mb-2">Waiting for Stream</h2>
+            <p className="text-gray-400 text-sm">The host hasn't started streaming yet.</p>
+          </div>
+        )}
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 pointer-events-none" />
       </div>
