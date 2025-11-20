@@ -25,14 +25,13 @@ import LiveStreamPlayer from './components/LiveStreamPlayer';
 // SCREEN 1: LIVE AUCTION ROOM (MOBILE)
 // ============================================
 
-const LiveAuctionMobile = ({ onNavigate }) => {
-  const [currentPrice, setCurrentPrice] = useState(900);
+const LiveAuctionMobile = ({ onNavigate, auctionState, setAuctionState }) => {
+  const { currentPrice, bidCount, isLive } = auctionState;
   const [isWinning, setIsWinning] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [priceKey, setPriceKey] = useState(0);
-  const [bidCount, setBidCount] = useState(47);
   const [timeLeft, setTimeLeft] = useState(45);
-  const [customBidAmount, setCustomBidAmount] = useState(950);
+  const [customBidAmount, setCustomBidAmount] = useState(currentPrice + 50);
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([
     { id: 1, user: 'vintage_king', text: 'Is this true to size?', color: 'text-gray-400' },
@@ -67,8 +66,11 @@ const LiveAuctionMobile = ({ onNavigate }) => {
   }, []);
 
   const handleBid = () => {
-    setCurrentPrice(customBidAmount);
-    setBidCount(bidCount + 1);
+    setAuctionState(prev => ({
+      ...prev,
+      currentPrice: customBidAmount,
+      bidCount: prev.bidCount + 1
+    }));
     setIsWinning(true);
     setShowConfetti(true);
     setTimeLeft(45); // Reset timer
@@ -112,7 +114,7 @@ const LiveAuctionMobile = ({ onNavigate }) => {
       <div className="relative w-full max-w-[480px] h-full bg-black shadow-2xl overflow-hidden">
       {/* 1. Full-screen Video Background */}
       <div className="absolute inset-0 bg-gray-900">
-        <LiveStreamPlayer />
+        <LiveStreamPlayer isLive={isLive} />
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 pointer-events-none" />
       </div>
@@ -125,7 +127,11 @@ const LiveAuctionMobile = ({ onNavigate }) => {
             <div className="w-10 h-10 rounded-full bg-gray-700 border-2 border-white overflow-hidden">
               <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="Streamer" className="w-full h-full object-cover grayscale" />
             </div>
-            <div className="absolute -bottom-1 -right-1 bg-white text-black text-[8px] font-bold px-1 rounded">LIVE</div>
+            {isLive && (
+              <div className="absolute -bottom-1 -right-1 bg-red-600 text-white text-[8px] font-bold px-1 rounded animate-pulse">
+                LIVE
+              </div>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -280,8 +286,12 @@ const LiveAuctionMobile = ({ onNavigate }) => {
 // SCREEN 3: ADMIN PANEL
 // ============================================
 
-const AdminPanel = ({ onNavigate }) => {
-  const [isLive, setIsLive] = useState(false);
+const AdminPanel = ({ onNavigate, auctionState, setAuctionState }) => {
+  const { isLive, currentPrice, bidCount, currentItem } = auctionState;
+
+  const toggleLive = () => {
+    setAuctionState(prev => ({ ...prev, isLive: !prev.isLive }));
+  };
 
   const upcomingItems = [
     { id: 1, name: 'Vintage Nike Tee', price: 800 },
@@ -322,7 +332,7 @@ const AdminPanel = ({ onNavigate }) => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-soft-silver font-inter">Current High Bid:</span>
-                <span className="text-neon-cyan font-black text-2xl">₹900</span>
+                <span className="text-neon-cyan font-black text-2xl">₹{currentPrice}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-soft-silver font-inter">Viewers:</span>
@@ -332,7 +342,7 @@ const AdminPanel = ({ onNavigate }) => {
 
             <div className="mt-6 space-y-3">
               <button 
-                onClick={() => setIsLive(!isLive)}
+                onClick={toggleLive}
                 className={`w-full py-4 font-black text-lg rounded-xl uppercase tracking-wider ${
                   isLive 
                     ? 'bg-neon-pink text-white shadow-neon-pink' 
@@ -664,6 +674,18 @@ function AppContent() {
   const [showWinner, setShowWinner] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
 
+  // Shared Auction State
+  const [auctionState, setAuctionState] = useState({
+    isLive: false,
+    currentPrice: 900,
+    bidCount: 47,
+    currentItem: {
+      name: 'Vintage Nike Tee',
+      description: 'Size L • 90s Era',
+      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop'
+    }
+  });
+
   // Detect if running as installed PWA
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
@@ -709,11 +731,22 @@ function AppContent() {
         )}
 
         {(currentScreen === 'live' || currentScreen === 'mobile') && (
-          <LiveAuctionMobile key="live" onNavigate={handleNavigate} user={user} />
+          <LiveAuctionMobile 
+            key="live" 
+            onNavigate={handleNavigate} 
+            user={user} 
+            auctionState={auctionState}
+            setAuctionState={setAuctionState}
+          />
         )}
 
         {currentScreen === 'admin' && (
-          <AdminPanel key="admin" onNavigate={handleNavigate} />
+          <AdminPanel 
+            key="admin" 
+            onNavigate={handleNavigate} 
+            auctionState={auctionState}
+            setAuctionState={setAuctionState}
+          />
         )}
       </AnimatePresence>
 
