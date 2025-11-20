@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import zg from './zegoEngine'; 
 import { ROOM_ID, HOST_USER_ID, HOST_STREAM_ID, HOST_TOKEN, STATIC_TOKEN_MODE } from './zegoConfig';
+import { db } from '../src/lib/firebase';
+import { ref, set, remove } from 'firebase/database';
 
 function HostView({
   roomId = ROOM_ID,
@@ -13,8 +15,9 @@ function HostView({
   const hostVideoRef = useRef(null);
   const initInProgressRef = useRef(false);
   const hasPublishedRef = useRef(false);
-  const [status, setStatus] = useState("Initializing...");
-
+  const [status, setStatus] = useState("Ready to Stream");
+  const [isLive, setIsLive] = useState(false);
+ds
   const resolveToken = async () => {
     if (typeof fetchToken === 'function') {
       const tokenResult = await fetchToken({
@@ -115,8 +118,19 @@ function HostView({
       console.log(`📤 Publishing: ${hostStreamId}`);
       await zg.startPublishingStream(hostStreamId, localStream.current);
       console.log("✅ Host is live!");
+      
+      // 5. Update Firebase
+      await set(ref(db, 'current_stream'), {
+        roomId: roomId,
+        streamId: hostStreamId,
+        hostId: hostUserId,
+        status: 'live',
+        startedAt: Date.now()
+      });
+
       setStatus("🔴 LIVE - Broadcasting");
       hasPublishedRef.current = true;
+      setIsLive(true);
 
     } catch (err) {
       console.error("🔴 Host Error");
@@ -127,98 +141,82 @@ function HostView({
         ? `Error ${err.code}: ${err.message || 'Failed to start'}` 
         : "Failed to start stream";
       setStatus(errorMsg);
+      setIsLive(false);
     } finally {
       initInProgressRef.current = false;
     }
   };
 
-  useEffect(() => {
-    startStream();
-
-    return () => {
+  const stopStream = async () => {
+    try {
       if (hasPublishedRef.current) {
-        try {
-          zg.stopPublishingStream(hostStreamId);
-        } catch (e) {
-          console.warn("Failed to stop publishing cleanly: " + (e?.message || e));
-        }
+        zg.stopPublishingStream(hostStreamId);
         hasPublishedRef.current = false;
+      }
+      
+      if (localStream.current) {
+        zg.destroyStream(localStream.current);
+        localStream.current = null;
       }
 
       if (hostVideoRef.current) {
         hostVideoRef.current.srcObject = null;
       }
 
-      if (localStream.current) {
-        try {
-          localStream.current.getTracks().forEach((track) => track.stop());
-        } catch (streamErr) {
-          console.warn("Failed to stop local tracks: " + (streamErr?.message || streamErr));
-        }
-        try {
-          zg.destroyStream(localStream.current);
-        } catch (destroyErr) {
-          console.warn("Failed to destroy local stream: " + (destroyErr?.message || destroyErr));
-        }
-        localStream.current = null;
-      }
+      await zg.logoutRoom(roomId);
+      
+      // Remove from Firebase
+      await remove(ref(db, 'current_stream'));
+      
+      setStatus("Stream Ended");
+      setIsLive(false);
+    } catch (err) {
+      console.error("Error stopping stream:", err);
+    }
+  };
 
-      try {
-        zg.logoutRoom(roomId);
-      } catch (logoutErr) {
-        console.warn("Logout error: " + (logoutErr?.message || logoutErr));
-      }
-      console.log("🏃 Host logged out");
+  useEffect(() => {
+    // Cleanup on unmount
+    return () => {
+      stopStream();
     };
   }, []);
 
   return (
-    <div>
+    <div className="relative w-full h-screen bg-black">
       <video
         ref={hostVideoRef}
         autoPlay
         muted
         playsInline
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: 0,
-          backgroundColor: '#000'
-        }}
-      ></video>
+        className="w-full h-full object-cover"
+      />
+      
+      {/* Host Controls Overlay */}
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-50">
+        {!isLive ? (
+          <button
+            onClick={startStream}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"
+          >
+            Start Stream
+          </button>
+        ) : (
+          <button
+            onClick={stopStream}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"
+          >
+            End Stream
+          </button>
+        )}
+      </div>
 
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          padding: '24px',
-          color: '#fff',
-          maxWidth: '480px'
-        }}
-      >
-        <div
-          style={{
-            alignSelf: 'flex-start',
-            padding: '8px 14px',
-            background: 'rgba(0, 0, 0, 0.6)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '999px',
-            fontSize: '0.9rem',
-            display: 'inline-block',
-            marginBottom: '16px'
-          }}
-        >
-          Host Status: {status}
-        </div>
-        <h1>Host View</h1>
-        <p>Camera preview is muted locally to prevent echo.</p>
+      <div className="absolute top-4 left-4 bg-black/50 px-4 py-2 rounded-lg text-white font-mono text-sm z-50">
+        Status: {status}
       </div>
     </div>
   );
 }
 
 export default HostView;
+

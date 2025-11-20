@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "crypto-js": "^4.2.0",
     "axios": "^1.13.2",
     "firebase": "^12.6.0",
     "framer-motion": "^10.16.16",

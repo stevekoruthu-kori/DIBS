@@ -13,8 +13,8 @@ export const HOST_STREAM_ID = "dibs-host-stream-1";
 
 // ⚠️ TOKENS MUST BE FETCHED FROM BACKEND IN PRODUCTION.
 // For temporary manual testing, you can place static tokens in env vars.
-export const HOST_TOKEN = "04AAAAAGke6DcADIEmFY/LyXgLPxi8SwC0QY3MqBetsXukDegzaWSO5Aolpx1r+jBQH4J6bIstLbLaQ2u6jsSD5Dxal+ipsdmMUMPR2DcLTjb1W6dlmUoONfRvTqr7h3aXKBQUP1zSB42+XCcZWA7X/CLvtlzNpEcMvgHj2jdKfp+FbcCV/Vdt8+TkY91tALBYtqQHIPQtQELmSuKvaZWg9CQFOJVm4RyuM6qntnMuyjzW5VDGL9toiFpXlkGdzWMM6waB3WT1nJH5O/1yAQ==";
-export const VIEWER_TOKEN = "04AAAAAGke9dwADIP5xfshe3C8OsKvjAC1qmf2vRNRTy6NRDat3pCacAWFA1RvzVIkQ6jqab8aGVusTEc1nM74HzgQWnTZCwzbOwro/3oIL3En3X2nsj5T/cBgmUaYGmKyvsORIAXb5wvLRdMrnP52KTQ1dsTQags5FIHbZdSxgWSmVw1UUQ+9ZIuG9FVFYjQW3MiyI+0YXaCzq+aTqrlJxnhZezsLySlQZv9Xxw3+M9ssz21ikZWgOCVpMt7WOlrfMNBP0admG/mScAzp6AE=";
+export const HOST_TOKEN = "04AAAAAGkgC7oADGcNB39oxkpRUPM7vgC0swucofoiLZQV5sZus1tvAww/ZUkEdfvshnAYmAed/troEaRrZkycSC0h5LZZr8GoVyoDVyrkU4+4TWEGcwZf/quPU+uWGeO+yJ5q1vknwkFSDVsBf3i8nsAA+takyR4r7uvTKERrx9KmiSTtUnTlKENMR/mL1M0rUuSz/xmm5VlN4YUs2ww++Qwm2crznZgmd41oQEnmV4WElpb1PJaWZ1s4hHc4Th1Gd2YTJRqeUpNWZjW0AQ==";
+export const VIEWER_TOKEN = "04AAAAAGkgC9UADB0eQ9KMt2wvjOX/0wC2wfBYcLKzy2ml6LWyAxsAwFWsxbW+xYyn6XfrG+7dPXIFrW6L34IXyNqiYFy+pmG07o+Heo6LmeSiIE5ep4E2q0KPDe8mN+d9+ZJ+c47uk7BLeeJY7CFmnl6Cyxm/oNHNFO6lySEGYHevyczhPyD6YMps4O1h0K9fpJGjqsx892ULee1kUOrK7iRrbNP7eNzOYIE+ObyriJrF9mRXR5HnF4xYa7wcVJyjwik6ZA9m1GK1MS7RChsB";
 
 export const HOST_USER_ID = "dibs-host";
 export const VIEWER_USER_ID = "dibs-viewer";

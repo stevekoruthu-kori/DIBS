@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import zg from '../lib/zegoEngine';
 import { ROOM_ID, HOST_STREAM_ID, HOST_TOKEN, HOST_USER_ID } from '../lib/zegoConfig';
+import { db } from '../lib/firebase';
+import { ref, set, remove } from 'firebase/database';
+
+let hostSessionLock = false;
 
 const HostScreen = () => {
   const localVideoRef = useRef(null);
@@ -35,11 +39,14 @@ const HostScreen = () => {
   }, []);
 
   const startHosting = async () => {
-    if (!canStart) {
+    if (!canStart || hostSessionLock) {
       return;
     }
 
+    let loginSucceeded = false;
+
     try {
+      hostSessionLock = true;
       setError(null);
       setIsStarting(true);
       setStatus('Checking requirements...');
@@ -71,8 +78,18 @@ const HostScreen = () => {
       setStatus('Publishing stream...');
       await zg.startPublishingStream(hostStreamId, localStream);
 
+      // Update Firebase
+      await set(ref(db, 'current_stream'), {
+        roomId: roomId,
+        streamId: hostStreamId,
+        hostId: hostUserId,
+        status: 'live',
+        startedAt: Date.now()
+      });
+
       setIsLive(true);
       setStatus('Live');
+      loginSucceeded = true;
     } catch (err) {
       console.error('Error hosting:', err);
       setError(err.message || JSON.stringify(err));
@@ -81,6 +98,9 @@ const HostScreen = () => {
       setIsLive(false);
       setIsMuted(false);
     } finally {
+      if (!loginSucceeded) {
+        hostSessionLock = false;
+      }
       setIsStarting(false);
     }
   };
@@ -98,6 +118,9 @@ const HostScreen = () => {
       setError(null);
       setIsStopping(true);
       setStatus('Ending stream...');
+
+      // Remove from Firebase
+      await remove(ref(db, 'current_stream'));
 
       try {
         await zg.stopPublishingStream(hostStreamId);
@@ -120,6 +143,7 @@ const HostScreen = () => {
       setError(err.message || JSON.stringify(err));
       setStatus(`Error: ${err.message || 'Unable to end stream'}`);
     } finally {
+      hostSessionLock = false;
       setIsStopping(false);
     }
   };
@@ -176,6 +200,7 @@ const HostScreen = () => {
       }
 
       cleanupLocalStream();
+      hostSessionLock = false;
     };
   }, [cleanupLocalStream, hostStreamId, roomId]);
 
