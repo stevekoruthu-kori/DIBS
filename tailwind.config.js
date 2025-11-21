@@ -17,6 +17,7 @@ export default {
       fontFamily: {
         'urbanist': ['Urbanist', 'sans-serif'],
         'inter': ['Inter', 'sans-serif'],
+        'display': ['Syne', 'sans-serif'],
       },
       animation: {
         'bid-pop': 'bidPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)',

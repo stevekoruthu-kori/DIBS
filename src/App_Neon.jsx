@@ -5,7 +5,6 @@ import { InstallPrompt, OfflineIndicator } from './components/PWAFeatures';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { db } from './lib/firebase';
 import { ref, onValue } from 'firebase/database';
-import LoginPage from './screens/LoginPage';
 import ThriftBrowse from './screens/ThriftBrowse';
 import WelcomePage from './screens/WelcomePage';
 import LiveStreamPlayer from './components/LiveStreamPlayer';
@@ -740,10 +739,6 @@ function AppContent() {
       <AnimatePresence mode="wait">
         {currentScreen === 'landing' && (
           <WelcomePage key="landing" onNavigate={handleNavigate} />
-        )}
-        
-        {currentScreen === 'login' && (
-          <LoginPage key="login" onLoginSuccess={handleLoginSuccess} />
         )}
         
         {currentScreen === 'thrift' && (
