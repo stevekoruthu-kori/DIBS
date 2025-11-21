@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 const appId = 1427457804;
 const serverSecret = 'adad56046aa8784f658ee83ede0cb092';
